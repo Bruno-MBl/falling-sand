@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stdio.h>
 
 #define GridHeight 100
 #define GridWidth 100
@@ -7,6 +8,7 @@
 typedef enum { AIR, SAND, STONE } Element;
 
 Vector2 GetMousePositionInGrid();
+Color CycleElement(Element* currentElement);
 void DrawSand();
 void UpdateSand();
 void GenerateWithRadius(int, Element);
@@ -28,8 +30,9 @@ int main(void) {
   InitWindow(screenWidth, screenHeight, "Sand falling test by Bruno");
 
   Vector2 ballPosition = {-100.0f, -100.0f};
-  Color ballColor = DARKBLUE;
+  Color ballColor = BEIGE;
   int cursorRadius = 5;
+  Element currentElement=SAND;
   bool mousePressed = false;
 
   clear();
@@ -45,13 +48,20 @@ int main(void) {
     //----------------------------------------------------------------------------------
     UpdateSand();
 
-    float delta_time = GetFrameTime();
     ballPosition = GetMousePosition();
+    cursorRadius += (int)(GetMouseWheelMove());
+    if (cursorRadius<1){
+      cursorRadius=1;
+    }
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+      ballColor=CycleElement(&currentElement);
+    }
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       mousePressed = true;
     }
     if (mousePressed) {
-      GenerateWithRadius(cursorRadius, SAND);
+      GenerateWithRadius(cursorRadius, currentElement);
     }
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
       mousePressed = false;
@@ -91,7 +101,7 @@ void clear() {
     for (int j = 0; j < GridHeight; j++) {
       if (i == 0 || i == GridWidth - 1) {
         grid[i][j] = STONE;
-      } else if (j == 0 || j == GridHeight) {
+      } else if (j == 0 || j == GridHeight - 1) {
         grid[i][j] = STONE;
       } else {
         grid[i][j] = AIR;
@@ -111,7 +121,7 @@ void GenerateWithRadius(int radius, Element element) {
   int grid_y = mouse.y;
   for (int i = grid_x - radius; i < grid_x + radius; i++) {
     for (int j = grid_y - radius; j < grid_y + radius; j++) {
-      if (GetRandomValue(1, 10) >= 7) {
+      if (GetRandomValue(0, 1) == 1) {
         set(i / CellSize, j / CellSize, element);
       }
     }
@@ -159,4 +169,30 @@ void UpdateSand() {
       }
     }
   }
+}
+
+Color GetElementColor(Element element){
+  switch (element) {
+    case SAND:
+      return BEIGE;
+    case STONE:
+      return GRAY;
+    case AIR:
+      return LIGHTGRAY;
+}
+}
+
+Color CycleElement(Element* currentElement){
+  switch (*currentElement) {
+    case SAND:
+      *currentElement=STONE;
+      break;
+    case STONE:
+      *currentElement=AIR;
+      break;
+    case AIR:
+      *currentElement=SAND;
+      break;
+  }
+  return GetElementColor(*currentElement);
 }
