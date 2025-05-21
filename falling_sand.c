@@ -11,7 +11,7 @@ void DrawSand();
 void UpdateSand();
 void GenerateWithRadius(int, Element);
 void set(int x, int y, Element element);
-void swap(int x1, int y1, int x2, int y2);
+void swap(Element* element1, Element* element2);
 void clear();
 
 Element grid[GridWidth][GridHeight];
@@ -81,10 +81,10 @@ int main(void) {
   return 0;
 }
 void set(int x, int y, Element element) { grid[x][y] = element; }
-void swap(int x1, int y1, int x2, int y2) {
-  Element temp = grid[x1][y1];
-  grid[x1][y1] = grid[x2][y2];
-  grid[x2][y2] = temp;
+void swap(Element* element1, Element* element2) {
+  Element temp =*element1;
+  *element1=*element2;
+  *element2=temp;
 }
 void clear() {
   for (int i = 0; i < GridWidth; i++) {
@@ -142,14 +142,18 @@ bool IsMovable(Element element) {
 void UpdateSand() {
   for (int i = 0; i < GridWidth; i++) {
     for (int j = GridHeight - 1; j >= 0; j--) {
-      switch (grid[i][j]) {
+      Element* currentCell=&grid[i][j];
+      Element* belowCell=&grid[i][j+1];
+      Element* belowLCell=&grid[i-1][j+1];
+      Element* belowRCell=&grid[i+1][j+1];
+      switch (*currentCell) {
       case SAND:
-        if (IsMovable(grid[i][j + 1])) {
-          swap(i, j, i, j + 1);
-        } else if (IsMovable(grid[i - 1][j + 1])) {
-          swap(i, j, i - 1, j + 1);
-        } else if (IsMovable(grid[i + 1][j + 1])) {
-          swap(i, j, i + 1, j + 1);
+        if (IsMovable(*belowCell)) {
+          swap(currentCell, belowCell);
+        } else if (IsMovable(*belowLCell)) {
+          swap(currentCell, belowLCell);
+        } else if (IsMovable(*belowRCell)) {
+          swap(currentCell, belowRCell);
           break;
         }
       }
